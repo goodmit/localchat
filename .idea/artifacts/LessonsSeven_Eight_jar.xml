@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="LessonsSeven&amp;Eight:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/LessonsSeven_Eight_jar</output-path>
+    <root id="archive" name="LessonsSeven&amp;Eight.jar">
+      <element id="module-output" name="LessonsSeven&amp;Eight" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/sqlite-jdbc-3.8.11.2.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
