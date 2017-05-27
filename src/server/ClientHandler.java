@@ -17,6 +17,7 @@ public class ClientHandler implements Runnable {
     private final String delimiter = "##_";
     private final String quit = "quit";
 
+    private boolean closed = false;
     private int reason;
     private DataOutputStream out;
     private DataInputStream in;
@@ -25,7 +26,7 @@ public class ClientHandler implements Runnable {
     private Server server;
     private Socket socket;
 
-    public ClientHandler(Socket socket, Server server) {
+    ClientHandler(Socket socket, Server server) {
         try {
             this.socket = socket;
             this.server = server;
@@ -115,11 +116,18 @@ public class ClientHandler implements Runnable {
 
     private void parseCommand() {
         while (hasClient) {
+            if (closed) {
+                hasClient = false;
+                System.out.println(clientName + " was disconnected by system.");
+                server.removeClient(clientName, this);
+                break;
+            }
+
             String message = null;
             try {
                 message = in.readUTF();
             } catch (IOException e) {
-                e.printStackTrace();
+                    e.printStackTrace();
             }
             if (message != null) {
                 String[] parsedMessage = message.split(delimiter);
@@ -212,7 +220,7 @@ public class ClientHandler implements Runnable {
 
         String login = parsedMessage[1];
         String password = parsedMessage[2];
-        String nick = null;
+        String nick;
 
         if (login.length() < 1 || login.length() > 16) {
             throw new AuthFailException(ErrorTypes.AUTH_LOGIN_INCORRECT);
@@ -232,15 +240,24 @@ public class ClientHandler implements Runnable {
         throw new AuthFailException(ErrorTypes.AUTH_INCORRECT);
     }
 
-    public DataOutputStream getOut() {
+    void setClosed() {
+        closed = true;
+    }
+
+    @Override
+    public String toString(){
+        return clientName + ", active=" + hasClient;
+    }
+
+    DataOutputStream getOut() {
         return out;
     }
 
-    public String getClientName() {
+    String getClientName() {
         return clientName;
     }
 
-    public void setNick(String nick) {
+    void setNick(String nick) {
         this.clientName = nick;
     }
 }

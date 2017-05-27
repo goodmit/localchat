@@ -13,7 +13,9 @@ import java.util.List;
 
 public class Server {
 
-   //private static volatile Server instance;
+    //private static volatile Server instance;
+    private boolean closed = false;
+    private Socket socket;
 
     private List<ClientHandler> clients;
 
@@ -64,25 +66,19 @@ public class Server {
     }
 
     public void waitForClient() {
-        Socket socket = null;
+        socket = null;
         try {
-            while(true) {
+            while(!closed) {
                     socket = serverSocket.accept();
                     System.out.println("Client connected.");
                     ClientHandler client = new ClientHandler(socket, this);
                     new Thread(client).start();
+                    if (socket == null) closed = true;
             }
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            try {
-                serverSocket.close();
-                System.out.println("Server closed.");
-                if (socket != null)
-                    socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            closeSession();
         }
     }
 
@@ -101,4 +97,27 @@ public class Server {
         }
     }
 
+    public void closeSession() {
+        if (!serverSocket.isClosed()) {
+            System.out.println("Server is stopping now...");
+            for (ClientHandler client : clients) {
+                client.setClosed();
+            }
+            newMessageFromClient("Server was stopped", "SYSTEM");
+            try {
+                serverSocket.close();
+                if (socket != null)
+                    socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            System.out.println("Server stopped!");
+        }
+    }
+
+    public void printClients() {
+        for (ClientHandler client : clients) {
+            System.out.println(client);
+        }
+    }
 }
